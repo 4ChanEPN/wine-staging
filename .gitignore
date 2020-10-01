@@ -1,5 +1,3 @@
-debian/tools/wine
-.depcache
-.srccache
-*.ok
+staging/wine
 *.pyc
+.patchupdate.cache

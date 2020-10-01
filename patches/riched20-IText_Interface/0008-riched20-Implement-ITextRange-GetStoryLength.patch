@@ -1,35 +1,17 @@
-From e604d5688ee6dee3737a1a6b9f94897b3e0e606a Mon Sep 17 00:00:00 2001
+From e53964c35b8005bf77f9088276604e7b47fdf475 Mon Sep 17 00:00:00 2001
 From: Jactry Zeng <wine@jactry.com>
 Date: Mon, 18 Aug 2014 14:38:50 +0800
 Subject: riched20: Implement ITextRange::GetStoryLength.
 
 ---
- dlls/riched20/richole.c       |  6 ++++--
  dlls/riched20/tests/richole.c | 32 ++++++++++++++++++++++++++++++++
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ 1 file changed, 32 insertions(+)
 
-diff --git a/dlls/riched20/richole.c b/dlls/riched20/richole.c
-index 0174d8e..60063ec 100644
---- a/dlls/riched20/richole.c
-+++ b/dlls/riched20/richole.c
-@@ -2243,8 +2243,10 @@ static HRESULT WINAPI ITextRange_fnGetStoryLength(ITextRange *me, LONG *pcch)
-     if (!This->reOle)
-         return CO_E_RELEASED;
- 
--    FIXME("not implemented %p\n", This);
--    return E_NOTIMPL;
-+    if (!pcch)
-+        return E_INVALIDARG;
-+    *pcch = ME_GetTextLength(This->reOle->editor) + 1;
-+    return S_OK;
- }
- 
- static HRESULT WINAPI ITextRange_fnGetStoryType(ITextRange *me, LONG *pValue)
 diff --git a/dlls/riched20/tests/richole.c b/dlls/riched20/tests/richole.c
-index 7a4c8b5..543f3ec 100644
+index ae087b7..55d27d4 100644
 --- a/dlls/riched20/tests/richole.c
 +++ b/dlls/riched20/tests/richole.c
-@@ -1326,6 +1326,37 @@ static void test_ITextRange_IsEqual(void)
+@@ -3636,6 +3636,37 @@ static void test_ITextRange_IsEqual2(void)
    release_interfaces(&w, &reOle, &txtDoc, NULL);
  }
  
@@ -67,12 +49,14 @@ index 7a4c8b5..543f3ec 100644
  START_TEST(richole)
  {
    /* Must explicitly LoadLibrary(). The test has no references to functions in
-@@ -1354,4 +1385,5 @@ START_TEST(richole)
+@@ -3664,6 +3695,7 @@ START_TEST(richole)
    test_ITextRange_GetText();
    test_ITextRange_SetRange();
-   test_ITextRange_IsEqual();
+   test_ITextRange_IsEqual2();
 +  test_ITextRange_GetStoryLength();
- }
+   test_GetClientSite();
+   test_IOleWindow_GetWindow();
+   test_IOleInPlaceSite_GetWindow();
 -- 
-2.1.1
+2.4.2
 

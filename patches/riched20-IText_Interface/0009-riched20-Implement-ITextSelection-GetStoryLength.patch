@@ -1,35 +1,17 @@
-From 72aec2670dc7071d0b03f65de3f0d7fb6525777f Mon Sep 17 00:00:00 2001
+From e5dad19d1dbab38b6a6c31bd23fe7dac278e6d1a Mon Sep 17 00:00:00 2001
 From: Jactry Zeng <wine@jactry.com>
 Date: Mon, 18 Aug 2014 14:47:14 +0800
 Subject: riched20: Implement ITextSelection::GetStoryLength.
 
 ---
- dlls/riched20/richole.c       |  6 ++++--
  dlls/riched20/tests/richole.c | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 2 deletions(-)
+ 1 file changed, 30 insertions(+)
 
-diff --git a/dlls/riched20/richole.c b/dlls/riched20/richole.c
-index 60063ec..13e5ba2 100644
---- a/dlls/riched20/richole.c
-+++ b/dlls/riched20/richole.c
-@@ -3281,8 +3281,10 @@ static HRESULT WINAPI ITextSelection_fnGetStoryLength(ITextSelection *me, LONG *
-     if (!This->reOle)
-         return CO_E_RELEASED;
- 
--    FIXME("not implemented\n");
--    return E_NOTIMPL;
-+    if (!pcch)
-+        return E_INVALIDARG;
-+    *pcch = ME_GetTextLength(This->reOle->editor) + 1;
-+    return S_OK;
- }
- 
- static HRESULT WINAPI ITextSelection_fnGetStoryType(ITextSelection *me, LONG *pValue)
 diff --git a/dlls/riched20/tests/richole.c b/dlls/riched20/tests/richole.c
-index 543f3ec..baed1f7 100644
+index c7d6299..38a8f80 100644
 --- a/dlls/riched20/tests/richole.c
 +++ b/dlls/riched20/tests/richole.c
-@@ -1357,6 +1357,35 @@ static void test_ITextRange_GetStoryLength(void)
+@@ -3813,6 +3813,35 @@ static void test_ITextRange_GetStoryLength(void)
    release_interfaces(&w, &reOle, &txtDoc, NULL);
  }
  
@@ -65,14 +47,14 @@ index 543f3ec..baed1f7 100644
  START_TEST(richole)
  {
    /* Must explicitly LoadLibrary(). The test has no references to functions in
-@@ -1373,6 +1402,7 @@ START_TEST(richole)
+@@ -3829,6 +3858,7 @@ START_TEST(richole)
    test_ITextSelection_SetEnd();
    test_ITextSelection_Collapse();
    test_ITextSelection_GetFont();
 +  test_ITextSelection_GetStoryLength();
    test_ITextDocument_Range();
    test_ITextRange_GetChar();
-   test_ITextRange_GetStart_GetEnd();
+   test_ITextRange_ScrollIntoView();
 -- 
-2.1.1
+2.7.1
 

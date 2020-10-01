@@ -1,4 +1,4 @@
-From 05a69d408bc84fa489f297973e3a0ab384dad635 Mon Sep 17 00:00:00 2001
+From 7f456e63bf51237bdd161fb6110a68f14d4e84ac Mon Sep 17 00:00:00 2001
 From: Sebastian Lackner <sebastian@fds-team.de>
 Date: Sun, 28 Sep 2014 22:42:46 +0200
 Subject: ntdll: Throw exception if invalid handle is passed to NtClose and
@@ -10,7 +10,7 @@ Subject: ntdll: Throw exception if invalid handle is passed to NtClose and
  2 files changed, 92 insertions(+)
 
 diff --git a/dlls/ntdll/om.c b/dlls/ntdll/om.c
-index 47a2614..bcc6d69 100644
+index c13934a89bd..098229cc094 100644
 --- a/dlls/ntdll/om.c
 +++ b/dlls/ntdll/om.c
 @@ -38,6 +38,7 @@
@@ -21,7 +21,7 @@ index 47a2614..bcc6d69 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(ntdll);
  
-@@ -343,6 +344,13 @@ NTSTATUS WINAPI NtDuplicateObject( HANDLE source_process, HANDLE source,
+@@ -377,6 +378,13 @@ NTSTATUS WINAPI NtDuplicateObject( HANDLE source_process, HANDLE source,
      return ret;
  }
  
@@ -35,7 +35,7 @@ index 47a2614..bcc6d69 100644
  /* Everquest 2 / Pirates of the Burning Sea hooks NtClose, so we need a wrapper */
  NTSTATUS close_handle( HANDLE handle )
  {
-@@ -356,6 +364,25 @@ NTSTATUS close_handle( HANDLE handle )
+@@ -390,6 +398,25 @@ NTSTATUS close_handle( HANDLE handle )
      }
      SERVER_END_REQ;
      if (fd != -1) close( fd );
@@ -62,22 +62,22 @@ index 47a2614..bcc6d69 100644
  }
  
 diff --git a/dlls/ntdll/tests/exception.c b/dlls/ntdll/tests/exception.c
-index 2074f0a..bc36242 100644
+index 6e901e92b6d..0f369dd672d 100644
 --- a/dlls/ntdll/tests/exception.c
 +++ b/dlls/ntdll/tests/exception.c
-@@ -51,6 +51,7 @@ static NTSTATUS  (WINAPI *pNtTerminateProcess)(HANDLE handle, LONG exit_code);
+@@ -52,6 +52,7 @@ static NTSTATUS  (WINAPI *pNtTerminateProcess)(HANDLE handle, LONG exit_code);
  static NTSTATUS  (WINAPI *pNtQueryInformationProcess)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
  static NTSTATUS  (WINAPI *pNtSetInformationProcess)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG);
  static BOOL      (WINAPI *pIsWow64Process)(HANDLE, PBOOL);
 +static NTSTATUS  (WINAPI *pNtClose)(HANDLE);
  
  #if defined(__x86_64__)
- static BOOLEAN   (CDECL *pRtlAddFunctionTable)(RUNTIME_FUNCTION*, DWORD, DWORD64);
-@@ -936,6 +937,16 @@ static void test_debugger(void)
-                         /* here we handle exception */
-                     }
+ typedef struct
+@@ -1025,6 +1026,16 @@ static void test_debugger(void)
+ 
+                     if (stage == 10) continuestatus = DBG_EXCEPTION_NOT_HANDLED;
                  }
-+                else if (stage == 7 || stage == 8)
++                else if (stage == 11 || stage == 12)
 +                {
 +                    ok(de.u.Exception.ExceptionRecord.ExceptionCode == EXCEPTION_INVALID_HANDLE,
 +                       "unexpected exception code %08x, expected %08x\n", de.u.Exception.ExceptionRecord.ExceptionCode,
@@ -85,12 +85,12 @@ index 2074f0a..bc36242 100644
 +                    ok(de.u.Exception.ExceptionRecord.NumberParameters == 0,
 +                       "unexpected number of parameters %d, expected 0\n", de.u.Exception.ExceptionRecord.NumberParameters);
 +
-+                    if (stage == 8) continuestatus = DBG_EXCEPTION_NOT_HANDLED;
++                    if (stage == 12) continuestatus = DBG_EXCEPTION_NOT_HANDLED;
 +                }
                  else
                      ok(FALSE, "unexpected stage %x\n", stage);
  
-@@ -1788,6 +1799,53 @@ static void test_ripevent(DWORD numexc)
+@@ -2511,6 +2522,53 @@ static void test_breakpoint(DWORD numexc)
      pRtlRemoveVectoredExceptionHandler(vectored_handler);
  }
  
@@ -127,7 +127,7 @@ index 2074f0a..bc36242 100644
 +    invalid_handle_exceptions = 0;
 +    res = CloseHandle((HANDLE)0xdeadbeef);
 +    ok(!res, "CloseHandle(0xdeadbeef) unexpectedly succeeded\n");
-+    ok(GetLastError() == ERROR_INVALID_HANDLE, "wrong error code %d instead of %d",
++    ok(GetLastError() == ERROR_INVALID_HANDLE, "wrong error code %d instead of %d\n",
 +       GetLastError(), ERROR_INVALID_HANDLE);
 +    ok(invalid_handle_exceptions == numexc, "CloseHandle generated %d exceptions, expected %d\n",
 +       invalid_handle_exceptions, numexc);
@@ -141,44 +141,44 @@ index 2074f0a..bc36242 100644
 +    pRtlRemoveVectoredExceptionHandler(vectored_handler);
 +}
 +
- START_TEST(exception)
+ static void test_vectored_continue_handler(void)
  {
-     HMODULE hntdll = GetModuleHandleA("ntdll.dll");
-@@ -1802,6 +1860,7 @@ START_TEST(exception)
+     PVOID handler1, handler2;
+@@ -2565,6 +2623,7 @@ START_TEST(exception)
      pNtGetContextThread  = (void *)GetProcAddress( hntdll, "NtGetContextThread" );
      pNtSetContextThread  = (void *)GetProcAddress( hntdll, "NtSetContextThread" );
      pNtReadVirtualMemory = (void *)GetProcAddress( hntdll, "NtReadVirtualMemory" );
 +    pNtClose             = (void *)GetProcAddress( hntdll, "NtClose" );
      pRtlUnwind           = (void *)GetProcAddress( hntdll, "RtlUnwind" );
      pRtlRaiseException   = (void *)GetProcAddress( hntdll, "RtlRaiseException" );
-     pNtTerminateProcess  = (void *)GetProcAddress( hntdll, "NtTerminateProcess" );
-@@ -1865,6 +1924,10 @@ START_TEST(exception)
-             test_ripevent(0);
-             test_stage = 6;
-             test_ripevent(1);
-+            test_stage = 7;
+     pRtlCaptureContext   = (void *)GetProcAddress( hntdll, "RtlCaptureContext" );
+@@ -2636,6 +2695,10 @@ START_TEST(exception)
+             test_breakpoint(0);
+             test_stage = 10;
+             test_breakpoint(1);
++            test_stage = 11;
 +            test_closehandle(0);
-+            test_stage = 8;
++            test_stage = 12;
 +            test_closehandle(1);
          }
          else
              skip( "RtlRaiseException not found\n" );
-@@ -1878,6 +1941,7 @@ START_TEST(exception)
-     test_rtlraiseexception();
-     test_outputdebugstring(1, FALSE);
+@@ -2652,6 +2715,7 @@ START_TEST(exception)
      test_ripevent(1);
+     test_debug_service(1);
+     test_breakpoint(1);
 +    test_closehandle(0);
+     test_vectored_continue_handler();
      test_debugger();
      test_simd_exceptions();
-     test_fpu_exceptions();
-@@ -1896,6 +1960,7 @@ START_TEST(exception)
- 
-     test_outputdebugstring(1, FALSE);
+@@ -2685,6 +2749,7 @@ START_TEST(exception)
      test_ripevent(1);
+     test_debug_service(1);
+     test_breakpoint(1);
 +    test_closehandle(0);
+     test_vectored_continue_handler();
      test_virtual_unwind();
- 
-     if (pRtlAddFunctionTable && pRtlDeleteFunctionTable && pRtlInstallFunctionTableCallback && pRtlLookupFunctionEntry)
+     test___C_specific_handler();
 -- 
-2.1.1
+2.13.1
 

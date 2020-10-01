@@ -1,0 +1,197 @@
+From 93267b9dc171775f908aa0f0dde65cc5a60c3b0b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
+Date: Fri, 4 Mar 2016 22:22:42 +0100
+Subject: ddraw: Set ddsOldCaps correctly in ddraw7_GetCaps.
+
+---
+ dlls/ddraw/ddraw.c        |  2 ++
+ dlls/ddraw/tests/ddraw1.c | 26 ++++++++++++++++++++++++++
+ dlls/ddraw/tests/ddraw2.c | 26 ++++++++++++++++++++++++++
+ dlls/ddraw/tests/ddraw4.c | 26 ++++++++++++++++++++++++++
+ dlls/ddraw/tests/ddraw7.c | 26 ++++++++++++++++++++++++++
+ 5 files changed, 106 insertions(+)
+
+diff --git a/dlls/ddraw/ddraw.c b/dlls/ddraw/ddraw.c
+index 8a33ccd4c7..3330b9ce32 100644
+--- a/dlls/ddraw/ddraw.c
++++ b/dlls/ddraw/ddraw.c
+@@ -1554,6 +1554,8 @@ static HRESULT WINAPI ddraw7_GetCaps(IDirectDraw7 *iface, DDCAPS *DriverCaps, DD
+     caps.dwCaps |= DDCAPS_ALIGNSTRIDE;
+     caps.dwAlignStrideAlign = DDRAW_STRIDE_ALIGNMENT;
+ 
++    caps.ddsOldCaps.dwCaps = caps.ddsCaps.dwCaps;
++
+     IDirect3D7_EnumZBufferFormats(&ddraw->IDirect3D7_iface, &IID_IDirect3DHALDevice, enum_zbuffer, &caps);
+ 
+     if(DriverCaps)
+diff --git a/dlls/ddraw/tests/ddraw1.c b/dlls/ddraw/tests/ddraw1.c
+index 4f53ee1059..538ab656e3 100644
+--- a/dlls/ddraw/tests/ddraw1.c
++++ b/dlls/ddraw/tests/ddraw1.c
+@@ -10683,6 +10683,31 @@ done:
+     DestroyWindow(window);
+ }
+ 
++static void test_caps(void)
++{
++    IDirectDraw *ddraw;
++    DDCAPS caps, caps2;
++    HRESULT hr;
++
++    ddraw = create_ddraw();
++    ok(!!ddraw, "Failed to create a ddraw object.\n");
++
++    caps.dwSize = sizeof(caps);
++    caps2.dwSize = sizeof(caps2);
++    hr = IDirectDraw_GetCaps(ddraw, &caps, &caps2);
++    ok(SUCCEEDED(hr), "Failed to query for caps, hr %#x.\n", hr);
++
++    ok(caps.ddsOldCaps.dwCaps == caps.ddsCaps.dwCaps,
++       "Expected hal ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps.ddsOldCaps.dwCaps, caps.ddsCaps.dwCaps);
++
++    ok(caps2.ddsOldCaps.dwCaps == caps2.ddsCaps.dwCaps,
++       "Expected hel ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps2.ddsOldCaps.dwCaps, caps2.ddsCaps.dwCaps);
++
++    IDirectDraw_Release(ddraw);
++}
++
+ START_TEST(ddraw1)
+ {
+     IDirectDraw *ddraw;
+@@ -10770,4 +10795,5 @@ START_TEST(ddraw1)
+     test_surface_desc_size();
+     test_texture_load();
+     test_ck_operation();
++    test_caps();
+ }
+diff --git a/dlls/ddraw/tests/ddraw2.c b/dlls/ddraw/tests/ddraw2.c
+index be950d8034..b72fffb51e 100644
+--- a/dlls/ddraw/tests/ddraw2.c
++++ b/dlls/ddraw/tests/ddraw2.c
+@@ -12021,6 +12021,31 @@ done:
+     DestroyWindow(window);
+ }
+ 
++static void test_caps(void)
++{
++    IDirectDraw2 *ddraw;
++    DDCAPS caps, caps2;
++    HRESULT hr;
++
++    ddraw = create_ddraw();
++    ok(!!ddraw, "Failed to create a ddraw object.\n");
++
++    caps.dwSize = sizeof(caps);
++    caps2.dwSize = sizeof(caps2);
++    hr = IDirectDraw2_GetCaps(ddraw, &caps, &caps2);
++    ok(SUCCEEDED(hr), "Failed to query for caps, hr %#x.\n", hr);
++
++    ok(caps.ddsOldCaps.dwCaps == caps.ddsCaps.dwCaps,
++       "Expected hal ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps.ddsOldCaps.dwCaps, caps.ddsCaps.dwCaps);
++
++    ok(caps2.ddsOldCaps.dwCaps == caps2.ddsCaps.dwCaps,
++       "Expected hel ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps2.ddsOldCaps.dwCaps, caps2.ddsCaps.dwCaps);
++
++    IDirectDraw2_Release(ddraw);
++}
++
+ START_TEST(ddraw2)
+ {
+     IDirectDraw2 *ddraw;
+@@ -12116,4 +12141,5 @@ START_TEST(ddraw2)
+     test_display_mode_surface_pixel_format();
+     test_surface_desc_size();
+     test_ck_operation();
++    test_caps();
+ }
+diff --git a/dlls/ddraw/tests/ddraw4.c b/dlls/ddraw/tests/ddraw4.c
+index 2f92a70f4c..1381b498de 100644
+--- a/dlls/ddraw/tests/ddraw4.c
++++ b/dlls/ddraw/tests/ddraw4.c
+@@ -13551,6 +13551,31 @@ static void test_compute_sphere_visibility(void)
+     DestroyWindow(window);
+ }
+ 
++static void test_caps(void)
++{
++    IDirectDraw4 *ddraw;
++    DDCAPS caps, caps2;
++    HRESULT hr;
++
++    ddraw = create_ddraw();
++    ok(!!ddraw, "Failed to create a ddraw object.\n");
++
++    caps.dwSize = sizeof(caps);
++    caps2.dwSize = sizeof(caps2);
++    hr = IDirectDraw4_GetCaps(ddraw, &caps, &caps2);
++    ok(SUCCEEDED(hr), "Failed to query for caps, hr %#x.\n", hr);
++
++    ok(caps.ddsOldCaps.dwCaps == caps.ddsCaps.dwCaps,
++       "Expected hal ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps.ddsOldCaps.dwCaps, caps.ddsCaps.dwCaps);
++
++    ok(caps2.ddsOldCaps.dwCaps == caps2.ddsCaps.dwCaps,
++       "Expected hel ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps2.ddsOldCaps.dwCaps, caps2.ddsCaps.dwCaps);
++
++    IDirectDraw4_Release(ddraw);
++}
++
+ START_TEST(ddraw4)
+ {
+     IDirectDraw4 *ddraw;
+@@ -13657,4 +13682,5 @@ START_TEST(ddraw4)
+     test_ck_operation();
+     test_vb_refcount();
+     test_compute_sphere_visibility();
++    test_caps();
+ }
+diff --git a/dlls/ddraw/tests/ddraw7.c b/dlls/ddraw/tests/ddraw7.c
+index 29dd246d91..206c90ca3d 100644
+--- a/dlls/ddraw/tests/ddraw7.c
++++ b/dlls/ddraw/tests/ddraw7.c
+@@ -13251,6 +13251,31 @@ static void test_compute_sphere_visibility(void)
+     DestroyWindow(window);
+ }
+ 
++static void test_caps(void)
++{
++    IDirectDraw7 *ddraw;
++    DDCAPS caps, caps2;
++    HRESULT hr;
++
++    ddraw = create_ddraw();
++    ok(!!ddraw, "Failed to create a ddraw object.\n");
++
++    caps.dwSize = sizeof(caps);
++    caps2.dwSize = sizeof(caps2);
++    hr = IDirectDraw7_GetCaps(ddraw, &caps, &caps2);
++    ok(SUCCEEDED(hr), "Failed to query for caps, hr %#x.\n", hr);
++
++    ok(caps.ddsOldCaps.dwCaps == caps.ddsCaps.dwCaps,
++       "Expected hal ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps.ddsOldCaps.dwCaps, caps.ddsCaps.dwCaps);
++
++    ok(caps2.ddsOldCaps.dwCaps == caps2.ddsCaps.dwCaps,
++       "Expected hel ddsOldCaps and ddsCaps to be identical (%x vs %x).\n",
++       caps2.ddsOldCaps.dwCaps, caps2.ddsCaps.dwCaps);
++
++    IDirectDraw7_Release(ddraw);
++}
++
+ START_TEST(ddraw7)
+ {
+     HMODULE module = GetModuleHandleA("ddraw.dll");
+@@ -13367,4 +13392,5 @@ START_TEST(ddraw7)
+     test_ck_operation();
+     test_vb_refcount();
+     test_compute_sphere_visibility();
++    test_caps();
+ }
+-- 
+2.11.0
+

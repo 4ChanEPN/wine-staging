@@ -1,18 +1,193 @@
-From 8bead9c1fd37eff6e1f0612faf0fc7fb93e899f3 Mon Sep 17 00:00:00 2001
+From 4a759d3fc62318aad4e7da7fbaaa5099940e2a3f Mon Sep 17 00:00:00 2001
 From: Christian Costa <titan.costa@gmail.com>
 Date: Sat, 5 Apr 2014 14:02:07 +0200
-Subject: d3dx9_36: Implement D3DXGetShaderInputSemantics + tests.
+Subject: d3dx9_36: Implement D3DXGetShaderInputSemantics + tests. (rev 3)
 
 Fixes bug 22682.
 ---
+ dlls/d3dx9_24/d3dx9_24.spec  |  2 +-
+ dlls/d3dx9_25/d3dx9_25.spec  |  2 +-
+ dlls/d3dx9_26/d3dx9_26.spec  |  2 +-
+ dlls/d3dx9_27/d3dx9_27.spec  |  2 +-
+ dlls/d3dx9_28/d3dx9_28.spec  |  2 +-
+ dlls/d3dx9_29/d3dx9_29.spec  |  2 +-
+ dlls/d3dx9_30/d3dx9_30.spec  |  2 +-
+ dlls/d3dx9_31/d3dx9_31.spec  |  2 +-
+ dlls/d3dx9_32/d3dx9_32.spec  |  2 +-
+ dlls/d3dx9_33/d3dx9_33.spec  |  2 +-
+ dlls/d3dx9_34/d3dx9_34.spec  |  2 +-
+ dlls/d3dx9_35/d3dx9_35.spec  |  2 +-
  dlls/d3dx9_36/d3dx9_36.spec  |  2 +-
- dlls/d3dx9_36/shader.c       | 94 ++++++++++++++++++++++++++++++++++++++++++++
+ dlls/d3dx9_36/shader.c       | 93 ++++++++++++++++++++++++++++++++++++++++++++
  dlls/d3dx9_36/tests/shader.c | 86 ++++++++++++++++++++++++++++++++++++++++
+ dlls/d3dx9_37/d3dx9_37.spec  |  2 +-
+ dlls/d3dx9_38/d3dx9_38.spec  |  2 +-
+ dlls/d3dx9_39/d3dx9_39.spec  |  2 +-
+ dlls/d3dx9_40/d3dx9_40.spec  |  2 +-
+ dlls/d3dx9_41/d3dx9_41.spec  |  2 +-
+ dlls/d3dx9_42/d3dx9_42.spec  |  2 +-
+ dlls/d3dx9_43/d3dx9_43.spec  |  2 +-
  include/d3dx9shader.h        |  1 +
- 4 files changed, 182 insertions(+), 1 deletion(-)
+ 23 files changed, 200 insertions(+), 20 deletions(-)
 
+diff --git a/dlls/d3dx9_24/d3dx9_24.spec b/dlls/d3dx9_24/d3dx9_24.spec
+index f182d7e..f8068f9 100644
+--- a/dlls/d3dx9_24/d3dx9_24.spec
++++ b/dlls/d3dx9_24/d3dx9_24.spec
+@@ -154,7 +154,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_25/d3dx9_25.spec b/dlls/d3dx9_25/d3dx9_25.spec
+index 300dc1d..da1c874 100644
+--- a/dlls/d3dx9_25/d3dx9_25.spec
++++ b/dlls/d3dx9_25/d3dx9_25.spec
+@@ -154,7 +154,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_26/d3dx9_26.spec b/dlls/d3dx9_26/d3dx9_26.spec
+index 79e0a0c..03492f9 100644
+--- a/dlls/d3dx9_26/d3dx9_26.spec
++++ b/dlls/d3dx9_26/d3dx9_26.spec
+@@ -158,7 +158,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_27/d3dx9_27.spec b/dlls/d3dx9_27/d3dx9_27.spec
+index 79e0a0c..03492f9 100644
+--- a/dlls/d3dx9_27/d3dx9_27.spec
++++ b/dlls/d3dx9_27/d3dx9_27.spec
+@@ -158,7 +158,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_28/d3dx9_28.spec b/dlls/d3dx9_28/d3dx9_28.spec
+index abbfa94..977da28 100644
+--- a/dlls/d3dx9_28/d3dx9_28.spec
++++ b/dlls/d3dx9_28/d3dx9_28.spec
+@@ -158,7 +158,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_29/d3dx9_29.spec b/dlls/d3dx9_29/d3dx9_29.spec
+index abbfa94..977da28 100644
+--- a/dlls/d3dx9_29/d3dx9_29.spec
++++ b/dlls/d3dx9_29/d3dx9_29.spec
+@@ -158,7 +158,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_30/d3dx9_30.spec b/dlls/d3dx9_30/d3dx9_30.spec
+index 0269caa..27e8c08 100644
+--- a/dlls/d3dx9_30/d3dx9_30.spec
++++ b/dlls/d3dx9_30/d3dx9_30.spec
+@@ -158,7 +158,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_31/d3dx9_31.spec b/dlls/d3dx9_31/d3dx9_31.spec
+index be37e8f..f6ed856 100644
+--- a/dlls/d3dx9_31/d3dx9_31.spec
++++ b/dlls/d3dx9_31/d3dx9_31.spec
+@@ -157,7 +157,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_32/d3dx9_32.spec b/dlls/d3dx9_32/d3dx9_32.spec
+index 6d9e244..4f92df8 100644
+--- a/dlls/d3dx9_32/d3dx9_32.spec
++++ b/dlls/d3dx9_32/d3dx9_32.spec
+@@ -157,7 +157,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_33/d3dx9_33.spec b/dlls/d3dx9_33/d3dx9_33.spec
+index 6d9e244..4f92df8 100644
+--- a/dlls/d3dx9_33/d3dx9_33.spec
++++ b/dlls/d3dx9_33/d3dx9_33.spec
+@@ -157,7 +157,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_34/d3dx9_34.spec b/dlls/d3dx9_34/d3dx9_34.spec
+index 6d9e244..4f92df8 100644
+--- a/dlls/d3dx9_34/d3dx9_34.spec
++++ b/dlls/d3dx9_34/d3dx9_34.spec
+@@ -157,7 +157,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_35/d3dx9_35.spec b/dlls/d3dx9_35/d3dx9_35.spec
+index 6d9e244..4f92df8 100644
+--- a/dlls/d3dx9_35/d3dx9_35.spec
++++ b/dlls/d3dx9_35/d3dx9_35.spec
+@@ -157,7 +157,7 @@
+ @ stdcall D3DXGetImageInfoFromResourceW(long wstr ptr)
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
 diff --git a/dlls/d3dx9_36/d3dx9_36.spec b/dlls/d3dx9_36/d3dx9_36.spec
-index 4c72dc2..e4890ee 100644
+index 2db0152..3a15b76 100644
 --- a/dlls/d3dx9_36/d3dx9_36.spec
 +++ b/dlls/d3dx9_36/d3dx9_36.spec
 @@ -159,7 +159,7 @@
@@ -25,7 +200,7 @@ index 4c72dc2..e4890ee 100644
  @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
  @ stdcall D3DXGetShaderSize(ptr)
 diff --git a/dlls/d3dx9_36/shader.c b/dlls/d3dx9_36/shader.c
-index 5ea3d13..63852d0 100644
+index 4dbecb1..538cd42 100644
 --- a/dlls/d3dx9_36/shader.c
 +++ b/dlls/d3dx9_36/shader.c
 @@ -1,6 +1,7 @@
@@ -36,12 +211,12 @@ index 5ea3d13..63852d0 100644
   * Copyright 2011 Travis Athougies
   *
   * This library is free software; you can redistribute it and/or
-@@ -2126,3 +2127,96 @@ HRESULT WINAPI D3DXGetShaderSamplers(const DWORD *byte_code, const char **sample
+@@ -2413,3 +2414,95 @@ HRESULT WINAPI D3DXCreateTextureShader(const DWORD *function, ID3DXTextureShader
  
      return D3D_OK;
  }
 +
-+const DWORD* skip_instruction(const DWORD *byte_code, UINT shader_model)
++static const DWORD* skip_instruction(const DWORD *byte_code, UINT shader_model)
 +{
 +    TRACE("Shader model %u\n", shader_model);
 +
@@ -61,23 +236,24 @@ index 5ea3d13..63852d0 100644
 +    else
 +    {
 +        /* Handle remaining safe instructions */
-+        while (*++byte_code & (1 << 31));
++        while (*++byte_code & (1u << 31));
 +    }
 +
 +    return byte_code;
 +}
 +
-+static UINT get_shader_semantics(const DWORD *byte_code, D3DXSEMANTIC *semantics, BOOL input)
++static UINT get_shader_semantics(const DWORD *byte_code, D3DXSEMANTIC *semantics, DWORD type)
 +{
 +    const DWORD *ptr = byte_code;
 +    UINT shader_model = (*ptr >> 8) & 0xff;
 +    UINT i = 0;
 +
-+    TRACE("Shader version: %#x\n", *ptr++);
++    TRACE("Shader version: %#x\n", *ptr);
++    ptr++;
 +
 +    while (*ptr != D3DSIO_END)
 +    {
-+        if (*ptr & (1 << 31))
++        if (*ptr & (1u << 31))
 +        {
 +            FIXME("Opcode expected\n");
 +            return 0;
@@ -86,14 +262,15 @@ index 5ea3d13..63852d0 100644
 +        {
 +            DWORD param1 = *++ptr;
 +            DWORD param2 = *++ptr;
-+            DWORD usage = param1 & 0x1f;
-+            DWORD usage_index = (param1 >> 16) & 0xf;
-+            DWORD reg_type = (((param2 >> 11) & 0x3) << 3) | ((param2 >> 28) & 0x7);
++            DWORD usage = (param1 & D3DSP_DCL_USAGE_MASK) >> D3DSP_DCL_USAGE_SHIFT;
++            DWORD usage_index = (param1 & D3DSP_DCL_USAGEINDEX_MASK) >> D3DSP_DCL_USAGEINDEX_SHIFT;
++            DWORD reg_type = ((param2 & D3DSP_REGTYPE_MASK2) >> D3DSP_REGTYPE_SHIFT2)
++                    | ((param2 & D3DSP_REGTYPE_MASK) >> D3DSP_REGTYPE_SHIFT);
 +
 +            TRACE("D3DSIO_DCL param1: %#x, param2: %#x, usage: %u, usage_index: %u, reg_type: %u\n",
 +                   param1, param2, usage, usage_index, reg_type);
 +
-+            if (input && (reg_type == D3DSPR_INPUT))
++            if (reg_type == type)
 +            {
 +                if (semantics)
 +                {
@@ -102,10 +279,7 @@ index 5ea3d13..63852d0 100644
 +                }
 +                i++;
 +            }
-+            else
-+            {
-+                /* FIXME: Support for output semantics */
-+            }
++
 +            ptr++;
 +        }
 +        else
@@ -126,7 +300,7 @@ index 5ea3d13..63852d0 100644
 +    if (!byte_code)
 +        return D3DERR_INVALIDCALL;
 +
-+    nb_semantics = get_shader_semantics(byte_code, semantics, TRUE);
++    nb_semantics = get_shader_semantics(byte_code, semantics, D3DSPR_INPUT);
 +
 +    if (count)
 +        *count = nb_semantics;
@@ -134,7 +308,7 @@ index 5ea3d13..63852d0 100644
 +    return D3D_OK;
 +}
 diff --git a/dlls/d3dx9_36/tests/shader.c b/dlls/d3dx9_36/tests/shader.c
-index 694540c..728cd86 100644
+index 4a7ae67..9a2769f 100644
 --- a/dlls/d3dx9_36/tests/shader.c
 +++ b/dlls/d3dx9_36/tests/shader.c
 @@ -1,5 +1,6 @@
@@ -248,11 +422,102 @@ index 694540c..728cd86 100644
      test_registerset_defaults();
 +    test_get_shader_semantics();
  }
+diff --git a/dlls/d3dx9_37/d3dx9_37.spec b/dlls/d3dx9_37/d3dx9_37.spec
+index 2db0152..3a15b76 100644
+--- a/dlls/d3dx9_37/d3dx9_37.spec
++++ b/dlls/d3dx9_37/d3dx9_37.spec
+@@ -159,7 +159,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_38/d3dx9_38.spec b/dlls/d3dx9_38/d3dx9_38.spec
+index 2db0152..3a15b76 100644
+--- a/dlls/d3dx9_38/d3dx9_38.spec
++++ b/dlls/d3dx9_38/d3dx9_38.spec
+@@ -159,7 +159,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_39/d3dx9_39.spec b/dlls/d3dx9_39/d3dx9_39.spec
+index 2db0152..3a15b76 100644
+--- a/dlls/d3dx9_39/d3dx9_39.spec
++++ b/dlls/d3dx9_39/d3dx9_39.spec
+@@ -159,7 +159,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_40/d3dx9_40.spec b/dlls/d3dx9_40/d3dx9_40.spec
+index 2db0152..3a15b76 100644
+--- a/dlls/d3dx9_40/d3dx9_40.spec
++++ b/dlls/d3dx9_40/d3dx9_40.spec
+@@ -159,7 +159,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_41/d3dx9_41.spec b/dlls/d3dx9_41/d3dx9_41.spec
+index 2db0152..3a15b76 100644
+--- a/dlls/d3dx9_41/d3dx9_41.spec
++++ b/dlls/d3dx9_41/d3dx9_41.spec
+@@ -159,7 +159,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_42/d3dx9_42.spec b/dlls/d3dx9_42/d3dx9_42.spec
+index 9a69e76..0422f8a 100644
+--- a/dlls/d3dx9_42/d3dx9_42.spec
++++ b/dlls/d3dx9_42/d3dx9_42.spec
+@@ -152,7 +152,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
+diff --git a/dlls/d3dx9_43/d3dx9_43.spec b/dlls/d3dx9_43/d3dx9_43.spec
+index 9a69e76..0422f8a 100644
+--- a/dlls/d3dx9_43/d3dx9_43.spec
++++ b/dlls/d3dx9_43/d3dx9_43.spec
+@@ -152,7 +152,7 @@
+ @ stdcall D3DXGetPixelShaderProfile(ptr)
+ @ stdcall D3DXGetShaderConstantTable(ptr ptr)
+ @ stdcall D3DXGetShaderConstantTableEx(ptr long ptr)
+-@ stub D3DXGetShaderInputSemantics(ptr ptr ptr)
++@ stdcall D3DXGetShaderInputSemantics(ptr ptr ptr)
+ @ stub D3DXGetShaderOutputSemantics(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSamplers(ptr ptr ptr)
+ @ stdcall D3DXGetShaderSize(ptr)
 diff --git a/include/d3dx9shader.h b/include/d3dx9shader.h
-index d665f72..f565432 100644
+index a3f68f2..5714ddb 100644
 --- a/include/d3dx9shader.h
 +++ b/include/d3dx9shader.h
-@@ -315,6 +315,7 @@ DWORD WINAPI D3DXGetShaderVersion(const DWORD *byte_code);
+@@ -352,6 +352,7 @@ DWORD WINAPI D3DXGetShaderVersion(const DWORD *byte_code);
  const char * WINAPI D3DXGetVertexShaderProfile(struct IDirect3DDevice9 *device);
  HRESULT WINAPI D3DXFindShaderComment(const DWORD *byte_code, DWORD fourcc, const void **data, UINT *size);
  HRESULT WINAPI D3DXGetShaderSamplers(const DWORD *byte_code, const char **samplers, UINT *count);
@@ -261,5 +526,5 @@ index d665f72..f565432 100644
  HRESULT WINAPI D3DXAssembleShaderFromFileA(const char *filename, const D3DXMACRO *defines,
          ID3DXInclude *include, DWORD flags, ID3DXBuffer **shader, ID3DXBuffer **error_messages);
 -- 
-2.1.2
+2.8.0
 

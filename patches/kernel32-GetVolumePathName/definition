@@ -1,4 +1,0 @@
-Author: Erich E. Hoover
-Subject: Implement GetVolumePathName.
-Revision: 1
-Fixes: Support for GetVolumePathName

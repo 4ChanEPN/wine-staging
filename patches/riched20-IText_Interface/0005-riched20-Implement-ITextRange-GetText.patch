@@ -1,99 +1,17 @@
-From 238e65a743387bbfce3c79ed8d00b757b51f6c48 Mon Sep 17 00:00:00 2001
+From ce774a2b82262619fb882649ca02802e943ce404 Mon Sep 17 00:00:00 2001
 From: Jactry Zeng <wine@jactry.com>
 Date: Wed, 13 Aug 2014 15:40:11 +0800
 Subject: riched20: Implement ITextRange::GetText.
 
 ---
- dlls/riched20/richole.c       | 50 +++++++++++++++++++++++++------------------
- dlls/riched20/tests/richole.c | 38 ++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 21 deletions(-)
+ dlls/riched20/tests/richole.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/dlls/riched20/richole.c b/dlls/riched20/richole.c
-index 575f634..344bca5 100644
---- a/dlls/riched20/richole.c
-+++ b/dlls/riched20/richole.c
-@@ -1953,14 +1953,40 @@ static HRESULT WINAPI ITextRange_fnInvoke(ITextRange *me, DISPID dispIdMember, R
-     return E_NOTIMPL;
- }
- 
-+static HRESULT range_GetText(ME_TextEditor *editor, ME_Cursor *start, ME_Cursor *end, BSTR *pbstr)
-+{
-+    int nChars, endOfs;
-+    BOOL bEOP;
-+
-+    endOfs = ME_GetCursorOfs(end);
-+    nChars = endOfs - ME_GetCursorOfs(start);
-+    if (!nChars)
-+    {
-+        *pbstr = NULL;
-+        return S_OK;
-+    }
-+
-+    *pbstr = SysAllocStringLen(NULL, nChars);
-+    if (!*pbstr)
-+        return E_OUTOFMEMORY;
-+
-+    bEOP = (end->pRun->next->type == diTextEnd && endOfs > ME_GetTextLength(editor));
-+    ME_GetTextW(editor, *pbstr, nChars, start, nChars, FALSE, bEOP);
-+    TRACE("%s\n", wine_dbgstr_w(*pbstr));
-+
-+    return S_OK;
-+}
-+
- static HRESULT WINAPI ITextRange_fnGetText(ITextRange *me, BSTR *pbstr)
- {
-     ITextRangeImpl *This = impl_from_ITextRange(me);
-+    ME_Cursor start, end;
-     if (!This->reOle)
-         return CO_E_RELEASED;
- 
--    FIXME("not implemented %p\n", This);
--    return E_NOTIMPL;
-+    ME_CursorFromCharOfs(This->reOle->editor, This->start, &start);
-+    ME_CursorFromCharOfs(This->reOle->editor, This->end, &end);
-+    return range_GetText(This->reOle->editor, &start, &end, pbstr);
- }
- 
- static HRESULT WINAPI ITextRange_fnSetText(ITextRange *me, BSTR bstr)
-@@ -3037,8 +3063,6 @@ static HRESULT WINAPI ITextSelection_fnGetText(ITextSelection *me, BSTR *pbstr)
- {
-     ITextSelectionImpl *This = impl_from_ITextSelection(me);
-     ME_Cursor *start = NULL, *end = NULL;
--    int nChars, endOfs;
--    BOOL bEOP;
- 
-     if (!This->reOle)
-         return CO_E_RELEASED;
-@@ -3047,23 +3071,7 @@ static HRESULT WINAPI ITextSelection_fnGetText(ITextSelection *me, BSTR *pbstr)
-         return E_INVALIDARG;
- 
-     ME_GetSelection(This->reOle->editor, &start, &end);
--    endOfs = ME_GetCursorOfs(end);
--    nChars = endOfs - ME_GetCursorOfs(start);
--    if (!nChars)
--    {
--        *pbstr = NULL;
--        return S_OK;
--    }
--
--    *pbstr = SysAllocStringLen(NULL, nChars);
--    if (!*pbstr)
--        return E_OUTOFMEMORY;
--
--    bEOP = (end->pRun->next->type == diTextEnd && endOfs > ME_GetTextLength(This->reOle->editor));
--    ME_GetTextW(This->reOle->editor, *pbstr, nChars, start, nChars, FALSE, bEOP);
--    TRACE("%s\n", wine_dbgstr_w(*pbstr));
--
--    return S_OK;
-+    return range_GetText(This->reOle->editor, start, end, pbstr);
- }
- 
- static HRESULT WINAPI ITextSelection_fnSetText(ITextSelection *me, BSTR bstr)
 diff --git a/dlls/riched20/tests/richole.c b/dlls/riched20/tests/richole.c
-index 909d27e..0079b39 100644
+index c148034..051d9fe 100644
 --- a/dlls/riched20/tests/richole.c
 +++ b/dlls/riched20/tests/richole.c
-@@ -1209,6 +1209,43 @@ static void test_ITextRange_GetPara(void)
+@@ -3519,6 +3519,43 @@ static void test_ITextRange_GetPara(void)
    ITextPara_Release(txtPara);
  }
  
@@ -137,12 +55,14 @@ index 909d27e..0079b39 100644
  START_TEST(richole)
  {
    /* Must explicitly LoadLibrary(). The test has no references to functions in
-@@ -1234,4 +1271,5 @@ START_TEST(richole)
-   test_ITextRange_SetEnd();
+@@ -3544,6 +3581,7 @@ START_TEST(richole)
+   test_ITextRange_Collapse();
    test_ITextRange_GetFont();
    test_ITextRange_GetPara();
 +  test_ITextRange_GetText();
- }
+   test_GetClientSite();
+   test_IOleWindow_GetWindow();
+   test_IOleInPlaceSite_GetWindow();
 -- 
-2.1.1
+2.4.2
 

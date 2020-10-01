@@ -1,92 +1,71 @@
-From 36c98dd468a20204bc12809b6f290340a5f8c010 Mon Sep 17 00:00:00 2001
+From ae940533d113a6419605d09c874561af4cd292d4 Mon Sep 17 00:00:00 2001
 From: "Erich E. Hoover" <erich.e.hoover@gmail.com>
 Date: Fri, 18 Apr 2014 14:08:36 -0600
 Subject: server: Inherit security attributes from parent directories on
- creation.
+ creation. (try 7)
 
 ---
- dlls/advapi32/tests/security.c |  40 +++++++++++-
- server/file.c                  | 136 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 175 insertions(+), 1 deletion(-)
+ dlls/advapi32/tests/security.c |   8 +--
+ server/file.c                  | 137 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 141 insertions(+), 4 deletions(-)
 
 diff --git a/dlls/advapi32/tests/security.c b/dlls/advapi32/tests/security.c
-index 82c0639..3e88c2e 100644
+index a85bb38..7be1db6 100644
 --- a/dlls/advapi32/tests/security.c
 +++ b/dlls/advapi32/tests/security.c
-@@ -3117,10 +3117,11 @@ static void test_CreateDirectoryA(void)
-     ACL_SIZE_INFORMATION acl_size;
-     ACCESS_ALLOWED_ACE *ace;
-     SECURITY_ATTRIBUTES sa;
-+    char tmpfile[MAX_PATH];
-     char tmpdir[MAX_PATH];
-+    HANDLE token, hTemp;
-     struct _SID *owner;
-     BOOL bret = TRUE;
--    HANDLE token;
-     DWORD error;
-     PACL pDacl;
- 
-@@ -3213,6 +3214,43 @@ static void test_CreateDirectoryA(void)
-     }
+@@ -3280,7 +3280,7 @@ static void test_CreateDirectoryA(void)
+                                    (PSID *)&owner, NULL, &pDacl, NULL, &pSD);
+     ok(error == ERROR_SUCCESS, "Failed to get permissions on file\n");
+     test_inherited_dacl(pDacl, admin_sid, user_sid, INHERITED_ACE,
+-                        0x1f01ff, TRUE, TRUE, TRUE, __LINE__);
++                        0x1f01ff, FALSE, FALSE, FALSE, __LINE__);
      LocalFree(pSD);
+     CloseHandle(hTemp);
  
-+    /* Test inheritance of ACLs */
-+    strcpy(tmpfile, tmpdir);
-+    lstrcatA(tmpfile, "/tmpfile");
-+    hTemp = CreateFileA(tmpfile, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW,
-+                        FILE_FLAG_DELETE_ON_CLOSE, NULL);
-+    error = pGetNamedSecurityInfoA(tmpfile, SE_FILE_OBJECT,
-+                                   OWNER_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION, (PSID*)&owner,
-+                                   NULL, &pDacl, NULL, &pSD);
-+    ok(error == ERROR_SUCCESS, "Failed to get permissions on file.\n");
-+    bret = pGetAclInformation(pDacl, &acl_size, sizeof(acl_size), AclSizeInformation);
-+    ok(bret, "GetAclInformation failed\n");
-+    ok(acl_size.AceCount == 2, "GetAclInformation returned unexpected entry count (%d != 2).\n",
-+                               acl_size.AceCount);
-+    if (acl_size.AceCount > 0)
-+    {
-+        bret = pGetAce(pDacl, 0, (VOID **)&ace);
-+        ok(bret, "Inherited Failed to get Current User ACE.\n");
-+        bret = EqualSid(&ace->SidStart, user_sid);
-+        ok(bret, "Inherited Current User ACE != Current User SID.\n");
-+        ok(((ACE_HEADER *)ace)->AceFlags == INHERITED_ACE,
-+           "Inherited Current User ACE has unexpected flags (0x%x != 0x10)\n", ((ACE_HEADER *)ace)->AceFlags);
-+        ok(ace->Mask == 0x1f01ff, "Current User ACE has unexpected mask (0x%x != 0x1f01ff)\n",
-+                                  ace->Mask);
-+    }
-+    if (acl_size.AceCount > 1)
-+    {
-+        bret = pGetAce(pDacl, 1, (VOID **)&ace);
-+        ok(bret, "Inherited Failed to get Administators Group ACE.\n");
-+        bret = EqualSid(&ace->SidStart, admin_sid);
-+        ok(bret, "Inherited Administators Group ACE != Administators Group SID.\n");
-+        ok(((ACE_HEADER *)ace)->AceFlags == INHERITED_ACE,
-+           "Inherited Administators Group ACE has unexpected flags (0x%x != 0x10)\n", ((ACE_HEADER *)ace)->AceFlags);
-+        ok(ace->Mask == 0x1f01ff, "Administators Group ACE has unexpected mask (0x%x != 0x1f01ff)\n",
-+                                  ace->Mask);
-+    }
-+    CloseHandle(hTemp);
-+
- done:
-     HeapFree(GetProcessHeap(), 0, user);
-     bret = RemoveDirectoryA(tmpdir);
+@@ -3349,7 +3349,7 @@ static void test_CreateDirectoryA(void)
+                                    (PSID *)&owner, NULL, &pDacl, NULL, &pSD);
+     ok(error == ERROR_SUCCESS, "Failed to get permissions on file\n");
+     test_inherited_dacl(pDacl, admin_sid, user_sid, INHERITED_ACE,
+-                        0x1f01ff, TRUE, TRUE, TRUE, __LINE__);
++                        0x1f01ff, FALSE, FALSE, FALSE, __LINE__);
+     LocalFree(pSD);
+     CloseHandle(hTemp);
+ 
+@@ -3414,7 +3414,7 @@ static void test_CreateDirectoryA(void)
+     ok(error == ERROR_SUCCESS, "Failed to get permissions on file\n");
+     test_inherited_dacl(pDacl, admin_sid, user_sid,
+                         OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE | INHERITED_ACE,
+-                        0x1f01ff, TRUE, TRUE, TRUE, __LINE__);
++                        0x1f01ff, FALSE, FALSE, FALSE, __LINE__);
+     LocalFree(pSD);
+     bret = RemoveDirectoryA(tmpfile);
+     ok(bret == TRUE, "RemoveDirectoryA failed with error %u\n", GetLastError());
+@@ -3495,7 +3495,7 @@ static void test_CreateDirectoryA(void)
+     ok(error == ERROR_SUCCESS, "Failed to get permissions on file\n");
+     test_inherited_dacl(pDacl, admin_sid, user_sid,
+                         OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE | INHERITED_ACE,
+-                        0x1f01ff, TRUE, TRUE, TRUE, __LINE__);
++                        0x1f01ff, FALSE, FALSE, FALSE, __LINE__);
+     LocalFree(pSD);
+     CloseHandle(hTemp);
+ 
 diff --git a/server/file.c b/server/file.c
-index 57100c1..431b8a1 100644
+index 49f193d..6fbb71c 100644
 --- a/server/file.c
 +++ b/server/file.c
 @@ -71,6 +71,7 @@ struct file
  };
  
  static unsigned int generic_file_map_access( unsigned int access );
-+struct security_descriptor *get_xattr_sd( int fd );
++static struct security_descriptor *get_xattr_sd( int fd );
  
  static void file_dump( struct object *obj, int verbose );
- static struct fd *file_get_fd( struct object *obj );
-@@ -248,11 +249,141 @@ void set_xattr_sd( int fd, const struct security_descriptor *sd, const SID *user
+ static struct object_type *file_get_type( struct object *obj );
+@@ -225,11 +226,142 @@ static void set_xattr_sd( int fd, const struct security_descriptor *sd )
      xattr_fset( fd, WINE_XATTR_SD, buffer, len );
  }
  
-+struct security_descriptor *inherit_sd( const struct security_descriptor *parent_sd, int is_dir )
++static struct security_descriptor *inherit_sd( const struct security_descriptor *parent_sd, int is_dir )
 +{
 +    const DWORD inheritance_mask = INHERIT_ONLY_ACE | OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE;
 +    struct security_descriptor *sd = NULL;
@@ -175,8 +154,9 @@ index 57100c1..431b8a1 100644
 +    struct fd *parent_fd;
 +    int unix_fd;
 +
-+    parent_name = strndup( child_name, child_len );
-+    if (!parent_name) return NULL;
++    if (!(parent_name = mem_alloc( child_len + 1 ))) return NULL;
++    memcpy( parent_name, child_name, child_len );
++    parent_name[child_len] = 0;
 +
 +    /* skip trailing slashes */
 +    p = parent_name + strlen( parent_name ) - 1;
@@ -221,10 +201,10 @@ index 57100c1..431b8a1 100644
                                     const struct security_descriptor *sd )
  {
 +    struct security_descriptor *temp_sd = NULL;
-     const SID *owner = NULL, *group = NULL;
      struct object *obj = NULL;
      struct fd *fd;
-@@ -282,6 +413,10 @@ static struct object *create_file( struct fd *root, const char *nameptr, data_si
+     int flags;
+@@ -258,6 +390,10 @@ static struct object *create_file( struct fd *root, const char *nameptr, data_si
      default:                set_error( STATUS_INVALID_PARAMETER ); goto done;
      }
  
@@ -234,8 +214,8 @@ index 57100c1..431b8a1 100644
 +
      if (sd)
      {
-         owner = sd_get_owner( sd );
-@@ -325,6 +460,7 @@ static struct object *create_file( struct fd *root, const char *nameptr, data_si
+         const SID *owner = sd_get_owner( sd );
+@@ -297,6 +433,7 @@ static struct object *create_file( struct fd *root, const char *nameptr, data_si
      release_object( fd );
  
  done:
@@ -244,5 +224,5 @@ index 57100c1..431b8a1 100644
      return obj;
  }
 -- 
-2.1.0
+2.4.2
 

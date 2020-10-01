@@ -1,3 +1,1 @@
-Author: André Hentschel
-Subject: Use dynamic linking for libpcap.
-Revision: 1
+Depends: wpcap-Several_Fixes

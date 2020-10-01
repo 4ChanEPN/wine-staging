@@ -1,4 +1,4 @@
-From 343eb8dc82b72e641dc239a339f2419bb7f936c9 Mon Sep 17 00:00:00 2001
+From b0a0388503a1576fb9b1b91ca764251b30f7dd3e Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
 Date: Sun, 20 Jul 2014 22:22:14 +0200
 Subject: wined3d: allow changing strict drawing through an exported function
@@ -9,25 +9,27 @@ Subject: wined3d: allow changing strict drawing through an exported function
  2 files changed, 7 insertions(+)
 
 diff --git a/dlls/wined3d/wined3d.spec b/dlls/wined3d/wined3d.spec
-index a53c74b..7c9ebbd 100644
+index bbd2fb5..2fd0c0e 100644
 --- a/dlls/wined3d/wined3d.spec
 +++ b/dlls/wined3d/wined3d.spec
-@@ -271,3 +271,5 @@
- @ cdecl wined3d_volume_map(ptr ptr ptr long)
- @ cdecl wined3d_volume_preload(ptr)
- @ cdecl wined3d_volume_unmap(ptr)
-+
+@@ -220,6 +220,8 @@
+ @ cdecl wined3d_stateblock_decref(ptr)
+ @ cdecl wined3d_stateblock_incref(ptr)
+ 
 +@ cdecl wined3d_strictdrawing_set(long)
-\ No newline at end of file
++
+ @ cdecl wined3d_swapchain_create(ptr ptr ptr ptr ptr)
+ @ cdecl wined3d_swapchain_decref(ptr)
+ @ cdecl wined3d_swapchain_get_back_buffer(ptr long)
 diff --git a/dlls/wined3d/wined3d_main.c b/dlls/wined3d/wined3d_main.c
-index 7ab2448..8b4134d 100644
+index 0543d97..6a62697 100644
 --- a/dlls/wined3d/wined3d_main.c
 +++ b/dlls/wined3d/wined3d_main.c
-@@ -505,6 +505,11 @@ void wined3d_unregister_window(HWND window)
+@@ -515,6 +515,11 @@ void wined3d_unregister_window(HWND window)
      wined3d_wndproc_mutex_unlock();
  }
  
-+void wined3d_strictdrawing_set(int value)
++void CDECL wined3d_strictdrawing_set(int value)
 +{
 +    wined3d_settings.strict_draw_ordering = value;
 +}
@@ -36,5 +38,5 @@ index 7ab2448..8b4134d 100644
  BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
  {
 -- 
-1.8.3.2
+2.7.1
 

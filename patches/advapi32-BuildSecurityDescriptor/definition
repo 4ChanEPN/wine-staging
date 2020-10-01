@@ -1,0 +1,2 @@
+Fixes: Initial implementation of advapi32.BuildSecurityDescriptorW
+Depends: advapi32-GetExplicitEntriesFromAclW

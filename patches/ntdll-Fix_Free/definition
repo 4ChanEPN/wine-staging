@@ -1,4 +1,0 @@
-Author: Erich E. Hoover
-Subject: Fix unintentional leaks with ntdll internals
-Revision: 2
-Fixes: Fix unintentional leaks with ntdll internals
